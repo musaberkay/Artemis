@@ -224,7 +224,6 @@ export class ProgrammingExerciseUpdateComponent implements AfterViewInit, OnDest
     readonly isSaving = signal<boolean>(undefined!);
     goBackAfterSaving = false;
     problemStatementLoaded = false;
-    buildPlanLoaded = false;
     templateParticipationResultLoaded = true;
     notificationText?: string;
     readonly courseId = signal<number>(undefined!);
@@ -253,7 +252,6 @@ export class ProgrammingExerciseUpdateComponent implements AfterViewInit, OnDest
     public sequentialTestRunsAllowed = false;
     public auxiliaryRepositoriesSupported = false;
     auxiliaryRepositoriesValid = signal<boolean>(true);
-    public customBuildPlansSupported = '';
     public theiaEnabled = false;
     readonly plagiarismEnabled = signal(false);
     private _hyperionEnabled = false;
@@ -411,7 +409,6 @@ export class ProgrammingExerciseUpdateComponent implements AfterViewInit, OnDest
             this.programmingExercise.projectType = this.projectTypes?.[0];
             this.selectedProjectTypeValue = this.projectTypes?.[0];
             this.withDependenciesValue = false;
-            this.buildPlanLoaded = false;
             if (this.programmingExercise.buildConfig) {
                 this.programmingExercise.buildConfig.buildPlanConfiguration = undefined;
             } else {
@@ -629,7 +626,6 @@ export class ProgrammingExerciseUpdateComponent implements AfterViewInit, OnDest
         this.inProductionEnvironment = this.profileService.isProduction();
         if (this.profileService.isProfileActive(PROFILE_LOCALCI)) {
             this.isLocalCIEnabled = true;
-            this.customBuildPlansSupported = PROFILE_LOCALCI;
         }
 
         this.theiaEnabled = this.profileService.isModuleFeatureActive(MODULE_FEATURE_THEIA);
@@ -1626,7 +1622,6 @@ export class ProgrammingExerciseUpdateComponent implements AfterViewInit, OnDest
             auxiliaryRepositoryDuplicateDirectories: this.auxiliaryRepositoryDuplicateDirectories,
             auxiliaryRepositoryDuplicateNames: this.auxiliaryRepositoryDuplicateNames,
             checkoutSolutionRepositoryAllowed: this.checkoutSolutionRepositoryAllowed,
-            customBuildPlansSupported: this.customBuildPlansSupported,
             invalidDirectoryNamePattern: this.invalidDirectoryNamePattern,
             invalidRepositoryNamePattern: this.invalidRepositoryNamePattern,
             titleNamePattern: EXERCISE_TITLE_NAME_PATTERN,
@@ -1663,7 +1658,6 @@ export class ProgrammingExerciseUpdateComponent implements AfterViewInit, OnDest
             onRecreateBuildPlanOrUpdateTemplateChange: this.onRecreateBuildPlanOrUpdateTemplateChange,
             updateTemplate: this.importOptions.updateTemplate,
             recreateBuildPlanOrUpdateTemplateChange: this.onRecreateBuildPlanOrUpdateTemplateChange,
-            buildPlanLoaded: this.buildPlanLoaded,
         });
     }
 

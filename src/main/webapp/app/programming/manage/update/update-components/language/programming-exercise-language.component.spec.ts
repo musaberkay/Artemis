@@ -45,7 +45,6 @@ describe('ProgrammingExerciseLanguageComponent', () => {
             packageName: true,
             enableStaticCodeAnalysis: true,
             sequentialTestRuns: true,
-            customizeBuildScript: true,
         });
     });
 
