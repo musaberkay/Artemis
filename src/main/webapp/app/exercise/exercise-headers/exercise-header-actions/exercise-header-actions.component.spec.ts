@@ -124,10 +124,10 @@ describe('ExerciseHeaderActionsComponent', () => {
             expect(fixture.componentInstance.showFeedbackPopover()).toBe(false);
         });
 
-        it('should not show the popover when the user has not accepted AI feedback usage', () => {
+        it('should still show the popover when the user has not accepted AI feedback usage, so it can offer the opt-in hint', () => {
             createComponent(withCourse(manualAssessmentProgrammingExercise(), true), { llmAccepted: false });
 
-            expect(fixture.componentInstance.showFeedbackPopover()).toBe(false);
+            expect(fixture.componentInstance.showFeedbackPopover()).toBe(true);
         });
 
         it('should not show the popover for a programming exercise without manual assessment enabled', () => {
