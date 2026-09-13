@@ -4,18 +4,32 @@ import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { map } from 'rxjs/operators';
 import { AccountService } from 'app/core/auth/account.service';
+import { cloneWith } from 'app/foundation/util/deep-clone.util';
 import { AthenaFeature, AthenaFeedbackStyleField, createAthenaCourseConfigState } from 'app/course/manage/services/athena-course-config.state';
 import { CourseTitleBarTitleComponent } from 'app/course/shared/course-title-bar-title/course-title-bar-title.component';
 import { CourseTitleBarTitleDirective } from 'app/course/shared/directives/course-title-bar-title.directive';
 import { TranslateDirective } from 'app/foundation/language/translate.directive';
 import { ArtemisTranslatePipe } from 'app/foundation/pipes/artemis-translate.pipe';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCog, faShieldHalved } from '@fortawesome/free-solid-svg-icons';
+import { faChartLine, faCog, faShieldHalved } from '@fortawesome/free-solid-svg-icons';
 import { TabsModule } from 'primeng/tabs';
-import { MessageModule } from 'primeng/message';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { UnifiedFeedbackComponent } from 'app/shared/components/unified-feedback/unified-feedback.component';
+import {
+    TumUiBarChartComponent,
+    TumUiBarChartConfig,
+    TumUiButtonComponent,
+    TumUiCardComponent,
+    TumUiChartSeries,
+    TumUiDoughnutChartComponent,
+    TumUiDoughnutChartConfig,
+    TumUiLineChartComponent,
+    TumUiLineChartConfig,
+    TumUiTableDirective,
+    TumUiTagComponent,
+} from '@tumaet/ui-angular';
 
 /**
  * One clickable tick of a feedback style slider: its stored value (1-3), the i18n key for its label, and the i18n
@@ -45,20 +59,28 @@ interface FeedbackStyleTick {
         CourseTitleBarTitleComponent,
         CourseTitleBarTitleDirective,
         TabsModule,
-        MessageModule,
         FormsModule,
         TranslateDirective,
         ArtemisTranslatePipe,
         FaIconComponent,
         SkeletonModule,
         ToggleSwitchModule,
+        InputNumberModule,
         UnifiedFeedbackComponent,
+        TumUiCardComponent,
+        TumUiTagComponent,
+        TumUiButtonComponent,
+        TumUiTableDirective,
+        TumUiLineChartComponent,
+        TumUiBarChartComponent,
+        TumUiDoughnutChartComponent,
     ],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AthenaSettingsUpdateComponent {
     protected readonly faCog = faCog;
     protected readonly faShieldHalved = faShieldHalved;
+    protected readonly faChartLine = faChartLine;
 
     private readonly accountService = inject(AccountService);
     private readonly route = inject(ActivatedRoute);
@@ -79,7 +101,6 @@ export class AthenaSettingsUpdateComponent {
     readonly isLoaded = computed(() => this.state()?.isLoaded() ?? false);
     readonly formativeEnabled = computed(() => this.state()?.formativeFeedbackEnabled() ?? false);
     readonly gradingEnabled = computed(() => this.state()?.gradingFeedbackEnabled() ?? false);
-    readonly allowedFeedbackRequests = computed(() => this.state()?.allowedFeedbackRequests());
 
     /**
      * Whether either Athena feature is on. The feedback style cards only make sense once Athena actually sends
@@ -186,5 +207,91 @@ export class AthenaSettingsUpdateComponent {
         if (tab !== undefined) {
             this.activeTab.set(String(tab));
         }
+    }
+
+    // ============================================================================================
+    // Statistics tab - throwaway mockup for a design discussion with the instructor about what an
+    // Athena analytics page could show tutors. Every number below is invented, there is no backing
+    // endpoint, and none of this is translated: delete this section (and the tab) once the
+    // discussion has picked what, if anything, is worth building for real.
+    // ============================================================================================
+
+    protected readonly statsWeekLabels = ['Wk 1', 'Wk 2', 'Wk 3', 'Wk 4', 'Wk 5', 'Wk 6', 'Wk 7', 'This wk'];
+
+    protected readonly statsTrendSeries: readonly TumUiChartSeries[] = [
+        { label: 'Grading suggestions', data: [64, 71, 89, 102, 118, 96, 134, 151], color: 'var(--tumaet-ui-primary-color)' },
+        { label: 'Formative requests', data: [22, 35, 41, 58, 63, 49, 77, 92], color: 'var(--tumaet-ui-state-info)' },
+    ];
+
+    protected readonly statsTrendConfig: TumUiLineChartConfig = {
+        legend: true,
+        yAxis: { label: 'Requests' },
+        monotone: true,
+    };
+
+    protected readonly statsOutcomeLabels = ['Text', 'Programming', 'Modeling'];
+
+    protected readonly statsOutcomeSeries: readonly TumUiChartSeries[] = [
+        { label: 'Accepted as-is', data: [312, 155, 161], color: 'var(--tumaet-ui-state-success)' },
+        { label: 'Adapted', data: [138, 135, 116], color: 'var(--tumaet-ui-state-warning)' },
+        { label: 'Discarded', data: [62, 108, 97], color: 'var(--tumaet-ui-state-danger)' },
+    ];
+
+    protected readonly statsOutcomeConfig: TumUiBarChartConfig = {
+        horizontal: true,
+        stacked: true,
+        legend: true,
+        xAxis: { label: 'Suggestions reviewed' },
+    };
+
+    protected readonly statsPreferenceLabels = ['Detail', 'Formality'];
+
+    protected readonly statsPreferenceSeries: readonly TumUiChartSeries[] = [
+        { label: 'Brief / Formal', data: [18, 14], color: 'var(--tumaet-ui-muted-color)' },
+        { label: 'Neutral', data: [22, 31], color: 'var(--tumaet-ui-primary-color)' },
+        { label: 'Detailed / Friendly', data: [24, 19], color: 'var(--tumaet-ui-accent-color)' },
+    ];
+
+    protected readonly statsPreferenceConfig: TumUiBarChartConfig = {
+        horizontal: true,
+        stacked: true,
+        legend: true,
+        xAxis: { label: 'Students with a custom preference (of 64)' },
+    };
+
+    protected readonly statsLlmLabels = ['Cloud AI', 'Local AI'];
+
+    protected readonly statsLlmSeries: readonly TumUiChartSeries[] = [{ data: [71, 29], colors: ['var(--tumaet-ui-primary-color)', 'var(--tumaet-ui-muted-color)'] }];
+
+    protected readonly statsLlmConfig: TumUiDoughnutChartConfig = { legend: { position: 'right' } };
+
+    protected readonly statsTutors = [
+        { name: 'Tutor A', reviewed: 298, accepted: 52, adapted: 31, discarded: 17 },
+        { name: 'Tutor B', reviewed: 264, accepted: 44, adapted: 33, discarded: 23 },
+        { name: 'Tutor C', reviewed: 231, accepted: 61, adapted: 24, discarded: 15 },
+        { name: 'Tutor D', reviewed: 279, accepted: 39, adapted: 35, discarded: 26 },
+        { name: 'Tutor E', reviewed: 212, accepted: 57, adapted: 28, discarded: 15 },
+    ];
+
+    // ============================================================================================
+    // Admin control panel - throwaway mockup for a design discussion about what real, wireable admin
+    // controls this tab could offer next to the read-only rate limit above. Every value below is
+    // invented and local to this component: nothing here reads or writes a backend, and none of it
+    // is translated. Delete this section (and its markup) once the discussion has picked what, if
+    // anything, is worth building for real.
+    // ============================================================================================
+
+    /** Example-only override; never sent anywhere. The real cap is instance-wide, read via allowedFeedbackRequests(). */
+    protected readonly mockRateLimitOverride = signal(10);
+
+    protected readonly mockModuleHealth = signal([
+        { exerciseType: 'Text', url: 'modules/text/module_text_llm', healthy: true, lastChecked: '2 min ago' },
+        { exerciseType: 'Programming', url: 'modules/programming/module_programming_llm', healthy: true, lastChecked: '2 min ago' },
+        { exerciseType: 'Modeling', url: 'modules/modeling/module_modeling_llm', healthy: false, lastChecked: '2 min ago' },
+    ]);
+
+    /** Pretends to re-check module health: marks every module healthy and stamps "just now". No request is made. */
+    protected mockTestConnection() {
+        this.mockModuleHealth.update((modules) => modules.map((module) => cloneWith(module, { healthy: true, lastChecked: 'just now' })));
     }
 }

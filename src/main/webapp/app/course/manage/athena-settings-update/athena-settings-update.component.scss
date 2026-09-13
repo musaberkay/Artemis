@@ -23,6 +23,20 @@
     padding-top: 1rem;
 }
 
+// Dummy mockup tab - see the "Statistics tab" comment block in the component.
+.athena-stats-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding-top: 1rem;
+}
+
+.athena-stats-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
 // Enable/disable row for the two feature switches, styled after Iris's toggle row (see
 // iris-settings-update.component.scss's .iris-toggle-row): a surface card with the toggle beside a
 // label whose title and subtitle both change with the switch's state.

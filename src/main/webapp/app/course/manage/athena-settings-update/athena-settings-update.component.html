@@ -15,6 +15,11 @@
                     <span jhiTranslate="artemisApp.course.athenaConfig.settingsPage.adminTab"></span>
                 </p-tab>
             }
+            <!-- Dummy mockup tab for a design discussion - see the "Statistics tab" comment block in the component. -->
+            <p-tab value="statistics">
+                <fa-icon [icon]="faChartLine" class="me-2" />
+                <span>Statistics</span>
+            </p-tab>
         </p-tablist>
 
         <p-tabpanels>
@@ -149,13 +154,162 @@
             @if (isAdmin()) {
                 <p-tabpanel value="admin">
                     <div class="athena-admin-panel">
-                        <p class="text-muted-color" jhiTranslate="artemisApp.course.athenaConfig.settingsPage.adminOnly"></p>
-                        <p-message severity="info" styleClass="w-full">
-                            <span jhiTranslate="artemisApp.course.athenaConfig.settingsPage.rateLimit.description" [translateValues]="{ limit: allowedFeedbackRequests() }"></span>
-                        </p-message>
+                        <!-- ── MOCK CONTROL PANEL (throwaway mockup, no backing endpoint - see the component's
+                             "Admin control panel" comment) ── -->
+                        <div class="athena-stats-banner">
+                            <tum-ui-tag severity="warn">Example controls</tum-ui-tag>
+                            <span class="text-muted-color text-sm">Mockup for a design discussion - nothing below is wired to a backend yet.</span>
+                        </div>
+
+                        <tum-ui-card>
+                            <div class="flex items-center justify-between gap-3">
+                                <h6 class="athena-card-title">AI feedback request limit per exercise for each student</h6>
+                                <p-inputnumber [(ngModel)]="mockRateLimitOverride" [min]="1" [max]="100" [showButtons]="true" data-testid="athena-admin-mock-rate-limit" />
+                            </div>
+                        </tum-ui-card>
+
+                        <tum-ui-card>
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <h6 class="athena-card-title">Module connectivity</h6>
+                                    <small class="athena-card-subtitle text-muted-color">Health of the Athena module handling each exercise type.</small>
+                                </div>
+                                <tum-ui-button severity="primary" variant="solid" (clicked)="mockTestConnection()">Test connection</tum-ui-button>
+                            </div>
+                            <div class="mt-3 flex flex-col gap-2">
+                                @for (module of mockModuleHealth(); track module.exerciseType) {
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <span class="font-medium">{{ module.exerciseType }}</span>
+                                            <div class="text-xs text-muted-color">{{ module.url }}</div>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <tum-ui-tag [severity]="module.healthy ? 'success' : 'danger'">{{ module.healthy ? 'Healthy' : 'Unreachable' }}</tum-ui-tag>
+                                            <span class="text-xs text-muted-color">{{ module.lastChecked }}</span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </tum-ui-card>
                     </div>
                 </p-tabpanel>
             }
+
+            <!-- ── STATISTICS TAB (dummy mockup, no backing data - see the component's "Statistics tab" comment) ── -->
+            <p-tabpanel value="statistics">
+                <div class="athena-stats-panel">
+                    <div class="athena-stats-banner">
+                        <tum-ui-tag severity="warn">Example data</tum-ui-tag>
+                        <span class="text-muted-color text-sm">Mockup for a design discussion - nothing here is wired to real data yet.</span>
+                    </div>
+
+                    <div class="grid gap-4" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))">
+                        <tum-ui-card>
+                            <div class="text-sm text-muted-color">AI feedback suggestions</div>
+                            <div class="text-3xl font-semibold">1,284</div>
+                            <div class="text-xs text-muted-color">this semester, across text, programming &amp; modeling</div>
+                        </tum-ui-card>
+                        <tum-ui-card>
+                            <div class="text-sm text-muted-color">Kept by tutors</div>
+                            <div class="text-3xl font-semibold text-state-success">79%</div>
+                            <div class="text-xs text-muted-color">accepted as-is or adapted before use</div>
+                        </tum-ui-card>
+                        <tum-ui-card>
+                            <div class="text-sm text-muted-color">Formative requests</div>
+                            <div class="text-3xl font-semibold">512</div>
+                            <div class="text-xs text-muted-color">from 143 of 187 students &middot; 9 hit the cap</div>
+                        </tum-ui-card>
+                        <tum-ui-card>
+                            <div class="text-sm text-muted-color">Custom feedback style</div>
+                            <div class="text-3xl font-semibold">34%</div>
+                            <div class="text-xs text-muted-color">64 students override the course default</div>
+                        </tum-ui-card>
+                    </div>
+
+                    <tum-ui-card>
+                        <div class="text-sm font-medium mb-1">Suggestions &amp; formative requests over time</div>
+                        <div class="text-xs text-muted-color mb-3">Weekly volume, last 8 weeks</div>
+                        <div style="height: 260px">
+                            <tum-ui-line-chart
+                                [labels]="statsWeekLabels"
+                                [series]="statsTrendSeries"
+                                [config]="statsTrendConfig"
+                                ariaLabel="Weekly grading suggestions and formative requests"
+                                style="height: 100%"
+                            />
+                        </div>
+                    </tum-ui-card>
+
+                    <div class="grid gap-4" style="grid-template-columns: 1.15fr 1fr">
+                        <tum-ui-card>
+                            <div class="text-sm font-medium mb-1">Suggestion outcomes by exercise type</div>
+                            <div class="text-xs text-muted-color mb-3">What tutors did with a suggestion, this semester</div>
+                            <div style="height: 220px">
+                                <tum-ui-bar-chart
+                                    [labels]="statsOutcomeLabels"
+                                    [series]="statsOutcomeSeries"
+                                    [config]="statsOutcomeConfig"
+                                    ariaLabel="Suggestion outcomes by exercise type"
+                                    style="height: 100%"
+                                />
+                            </div>
+                            <div class="text-xs text-muted-color mt-2">Text exercises have the longest-running Athena integration, which tracks with the higher keep rate.</div>
+                        </tum-ui-card>
+
+                        <tum-ui-card>
+                            <div class="text-sm font-medium mb-1">Feedback style preferences</div>
+                            <div class="text-xs text-muted-color mb-3">Among the 64 students with a custom preference</div>
+                            <div style="height: 140px">
+                                <tum-ui-bar-chart
+                                    [labels]="statsPreferenceLabels"
+                                    [series]="statsPreferenceSeries"
+                                    [config]="statsPreferenceConfig"
+                                    ariaLabel="Feedback style preferences, detail and formality"
+                                    style="height: 100%"
+                                />
+                            </div>
+                            <hr class="divider" />
+                            <div class="text-sm font-medium mb-1">LLM usage</div>
+                            <div class="text-xs text-muted-color mb-2">2.4M tokens &middot; est. $18.40 this month</div>
+                            <div style="height: 120px">
+                                <tum-ui-doughnut-chart
+                                    [labels]="statsLlmLabels"
+                                    [series]="statsLlmSeries"
+                                    [config]="statsLlmConfig"
+                                    ariaLabel="LLM usage split between cloud and local AI"
+                                    style="height: 100%"
+                                />
+                            </div>
+                        </tum-ui-card>
+                    </div>
+
+                    <tum-ui-card>
+                        <div class="text-sm font-medium mb-3">By tutor</div>
+                        <table tumUiTable size="small" style="min-width: 100%">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Tutor</th>
+                                    <th scope="col" class="text-end">Reviewed</th>
+                                    <th scope="col" class="text-end">Accepted</th>
+                                    <th scope="col" class="text-end">Adapted</th>
+                                    <th scope="col" class="text-end">Discarded</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (tutor of statsTutors; track tutor.name) {
+                                    <tr>
+                                        <td>{{ tutor.name }}</td>
+                                        <td class="text-end">{{ tutor.reviewed }}</td>
+                                        <td class="text-end" [class.text-state-success]="tutor.accepted >= 50">{{ tutor.accepted }}%</td>
+                                        <td class="text-end">{{ tutor.adapted }}%</td>
+                                        <td class="text-end">{{ tutor.discarded }}%</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </tum-ui-card>
+                </div>
+            </p-tabpanel>
         </p-tabpanels>
     </p-tabs>
 </div>
